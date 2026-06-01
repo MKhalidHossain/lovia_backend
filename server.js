@@ -2,6 +2,8 @@ require("dotenv").config();
 console.log("MONGO_URI:", process.env.MONGO_URI);
 const express = require("express");
 const mongoose = require("mongoose");
+const authRoutes = require("./routes/auth");
+const authMiddleware = require("./middleware/auth");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,20 +24,28 @@ mongoose.connect(process.env.MONGO_URI)
 
 // let nextId =3;
 
+
+
+
 const todoSchema = new mongoose.Schema({
     title : { type: String, required: true},
-    done: { type: Boolean, default: false}
+    done: { type: Boolean, default: false},
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true}
 });
 
 const Todo = mongoose.model("Todo", todoSchema);
 
-app.get("/todos", async(req, res) => {
+
+app.use("/auth",authRoutes);
+
+
+app.get("/todos", authMiddleware, async(req, res) => {
     const todos = await Todo.find();
     res.json(todos);
 });
 
 
-app.get("/todos/:id", async (req, res) => {
+app.get("/todos/:id", authMiddleware, async (req, res) => {
     // const todo = todos.find(t => t.id === Number(req.params.id));
     const todo = await Todo.findById(req.params.id);
     if (!todo) 
@@ -44,7 +54,7 @@ app.get("/todos/:id", async (req, res) => {
 });
 
 
-app.post("/todos", async(req, res) => {
+app.post("/todos", authMiddleware, async(req, res) => {
   const { title } = req.body;
   if (!title) return res.status(400).json({ error: "title is required" });
 //   const todo = { id: nextId++, title, done: false };
@@ -54,7 +64,7 @@ app.post("/todos", async(req, res) => {
 });
 
 
-app.put("/todos/:id", async (req, res) => {
+app.put("/todos/:id", authMiddleware , async (req, res) => {
   const todo = await Todo.findByIdAndUpdate(req.params.id, req.body);
   if (!todo) return res.status(404).json({ error: "Not found" });
   res.json(todo);
@@ -62,7 +72,7 @@ app.put("/todos/:id", async (req, res) => {
 
 
 
-app.delete("/todos/:id", async (req, res) => {
+app.delete("/todos/:id", authMiddleware , async (req, res) => {
   try{
     // const result =  Todo.findByIdAndUpdate(req.params.id);
     const result =  Todo.findById(req.params.id);
