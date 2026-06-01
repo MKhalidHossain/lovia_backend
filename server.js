@@ -55,12 +55,18 @@ app.get("/todos/:id", authMiddleware, async (req, res) => {
 
 
 app.post("/todos", authMiddleware, async(req, res) => {
-  const { title } = req.body;
+  try{
+    const { title } = req.body;
   if (!title) return res.status(400).json({ error: "title is required" });
+  console.log("userId form token :", req.userId);
 //   const todo = { id: nextId++, title, done: false };
-  const todo = await Todo.create({title});
+  const todo = await Todo.create({title, userId: req.userId});
+  
 //   todos.push(todo);
   res.status(201).json(todo);
+  }catch(err){
+    res.status(500).json({ error: err.message });
+  }
 });
 
 
@@ -75,7 +81,7 @@ app.put("/todos/:id", authMiddleware , async (req, res) => {
 app.delete("/todos/:id", authMiddleware , async (req, res) => {
   try{
     // const result =  Todo.findByIdAndUpdate(req.params.id);
-    const result =  Todo.findById(req.params.id);
+    const result = await Todo.findById(req.params.id);
     console.log("Result of findById:", result);
     if(result) await Todo.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Deleted successfully" });
