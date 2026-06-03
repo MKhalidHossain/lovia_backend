@@ -7,7 +7,7 @@ module.exports= (req, res, next ) => {
     try{
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log("Decoded token:", decoded);
-        req.userId = decoded.id;
+        req.userId = decoded.userId;
         console.log("req.userId set to:", req.userId);
         next();
     
