@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth");
+const userRoutes = require("./routes/users");
 const todoRoutes = require("./routes/todo");
 
 const app = express();
@@ -11,11 +12,12 @@ app.use(express.json());
 
 connectDB();
 
+// Health check (handy for the Flutter client / load balancers).
+app.get("/health", (req, res) => res.json({ status: "ok" }));
+
 app.use("/auth", authRoutes);
+app.use("/users", userRoutes);
 app.use("/api", todoRoutes);
-
-
-console.log("MONGO_URI:", process.env.MONGO_URI);
 
 
 app.listen(PORT, () => {
